@@ -1,22 +1,36 @@
+import 'package:dice_game/providers/game_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class GamePage extends StatelessWidget {
+class GamePage extends StatefulWidget {
   const GamePage({Key? key}) : super(key: key);
-  static const String routeName = "/gamePage";
+  static const String routeName = "/gamepage";
+
+  @override
+  State<GamePage> createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  late GameProvider gameProvider;
+
+  @override
+  void didChangeDependencies() {
+    gameProvider = Provider.of<GameProvider>(context, listen: true);
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dice Game'),
-        centerTitle: true,
       ),
       body: ListView(
         shrinkWrap: true,
         children: [
           buildPointCount(),
-          SizedBox(
-            height: 30,
+          const SizedBox(
+            height: 50,
           ),
           buildGameBody(),
         ],
@@ -33,12 +47,12 @@ class GamePage extends StatelessWidget {
           Column(
             children: [
               Text(
-                "Lose: ",
-                style: TextStyle(fontSize: 20),
+                '  Win: ${gameProvider.win}',
+                style: const TextStyle(fontSize: 25),
               ),
               Text(
-                'Lose: ',
-                style: TextStyle(fontSize: 20),
+                'Lose: ${gameProvider.lose}',
+                style: const TextStyle(fontSize: 25),
               ),
             ],
           )
@@ -52,22 +66,24 @@ class GamePage extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          "1",
-          style: TextStyle(fontSize: 20),
+          gameProvider.status,
+          style: const TextStyle(fontSize: 25),
         ),
         const SizedBox(
           height: 50,
         ),
+        if (gameProvider.hasGameStarted)
           Text(
-            'The sum of dice are: ',
-            style: TextStyle(fontSize: 20),
+            'The sum of dice are: ${gameProvider.sum}',
+            style: const TextStyle(fontSize: 25),
           ),
         const SizedBox(
           height: 10,
         ),
+        if (gameProvider.point > 0)
           Text(
-            'Your point is: ',
-            style: TextStyle(fontSize: 20),
+            'Your point is: ${gameProvider.point}',
+            style: const TextStyle(fontSize: 25),
           ),
         const SizedBox(
           height: 50,
@@ -76,12 +92,12 @@ class GamePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Image.asset(
-              "",
+              gameProvider.diceList[gameProvider.index1],
               width: 150,
               height: 150,
             ),
             Image.asset(
-              "",
+              gameProvider.diceList[gameProvider.index2],
               width: 150,
               height: 150,
             ),
@@ -90,19 +106,28 @@ class GamePage extends StatelessWidget {
         const SizedBox(
           height: 50,
         ),
-        ElevatedButton(
+        gameProvider.hasGameStopped
+            ? ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
           ),
-          onPressed: () {},
+          onPressed: () {
+            setState(() {
+              gameProvider.reset();
+            });
+          },
           child: const Text(
             'Restart Game',
             style: TextStyle(fontSize: 20),
           ),
-        ),
-
-        ElevatedButton(
-          onPressed: () {},
+        )
+            : ElevatedButton(
+          onPressed: () {
+            setState(() {
+              gameProvider.rollTheDices();
+              gameProvider.checkResult();
+            });
+          },
           child: const Text(
             'Roll the Dices',
             style: TextStyle(fontSize: 20),
